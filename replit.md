@@ -93,7 +93,28 @@ The server starts on port 5000.
 - `GET /api/v1/products` - List products with pagination
 - `GET /validate?email=...&name=...&age=...&password=...` - Validation demo
 
+## Running Tests
+```bash
+cd golaravel
+go test ./...
+```
+
+All 273 tests pass, covering:
+- Service container (bindings, singletons, instances)
+- Routing (groups, params, middleware, named routes)
+- Request/Response handling
+- Validation (all Laravel-style rules)
+- Config (nested keys, environment loading)
+- Views (templates, shared data)
+- Middleware (CORS, auth, rate limiting, etc.)
+- Database ORM (query builder, models)
+- Migrations (schema builder)
+- Support helpers (Str, Collection, Carbon)
+
 ## Recent Changes
 - Created initial framework structure (2026-01-30)
 - Implemented all core components
 - Added example demo application
+- Added comprehensive test suite with 273 tests (2026-01-30)
+- Fixed nullable validation to skip subsequent rules when field is empty
+- Fixed Config.Get() to support flat keys from LoadEnv
