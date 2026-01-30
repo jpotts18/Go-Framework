@@ -21,6 +21,7 @@ type Route struct {
         name        string
         regex       *regexp.Regexp
         paramNames  []string
+        router      *Router
 }
 
 type RouteGroup struct {
@@ -76,6 +77,7 @@ func (r *Router) addRoute(method, pattern string, handler HandlerFunc, middlewar
                 Middleware: middleware,
                 regex:      regex,
                 paramNames: paramNames,
+                router:     r,
         }
 
         r.routes = append(r.routes, route)
@@ -121,6 +123,9 @@ func (r *Router) Match(methods []string, pattern string, handler HandlerFunc, mi
 
 func (route *Route) Name(name string) *Route {
         route.name = name
+        if route.router != nil {
+                route.router.namedRoutes[name] = route
+        }
         return route
 }
 
@@ -203,10 +208,6 @@ func (r *Router) matchRoute(method, path string) (*Route, map[string]string) {
                         if i+1 < len(matches) {
                                 params[name] = matches[i+1]
                         }
-                }
-
-                if route.name != "" {
-                        r.namedRoutes[route.name] = route
                 }
 
                 return route, params
