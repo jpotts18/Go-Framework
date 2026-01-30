@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoLaravel - A Laravel-Inspired Go Framework</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="/" class="logo">Go<span>Laravel</span></a>
+            <nav>
+                <a href="#getting-started">Getting Started</a>
+                <a href="#features">Features</a>
+                <a href="/docs">Documentation</a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h1>GoLaravel</h1>
+            <p>A Laravel-inspired Go framework that brings elegant design patterns and developer experience to the Go ecosystem.</p>
+            <a href="#getting-started" class="btn">Get Started</a>
+            <a href="/docs" class="btn btn-outline">Documentation</a>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="container">
+            <h2>Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>Service Container</h3>
+                    <p>Powerful dependency injection with automatic resolution, bindings, and singletons.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Expressive Routing</h3>
+                    <p>Define routes with groups, parameters, middleware, and named routes.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Built-in Middleware</h3>
+                    <p>CORS, Auth, Rate Limiting, Secure Headers, and more out of the box.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Request & Response</h3>
+                    <p>Fluent API for handling HTTP requests and building responses.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Validation</h3>
+                    <p>Laravel-style validation rules: required, email, min, max, and more.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Database ORM</h3>
+                    <p>Query builder with fluent interface and model-based ORM.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="docs-section" id="getting-started">
+        <div class="container">
+            <h2>Getting Started</h2>
+            <h3>Installation</h3>
+            <pre><code>go get github.com/yourusername/golaravel</code></pre>
+
+            <h3>Quick Example</h3>
+            <pre><code>package main
+
+import (
+    "golaravel/app"
+    "golaravel/app/http/request"
+    "golaravel/app/http/response"
+    "golaravel/app/http/middleware"
+)
+
+func main() {
+    application := app.New()
+
+    // Register middleware
+    application.Router.Use(middleware.Logger())
+    application.Router.Use(middleware.Recovery())
+
+    // Define routes
+    application.Router.Get("/", func(req *request.Request, res *response.Response) error {
+        return res.JSON(map[string]string{
+            "message": "Welcome to GoLaravel!",
+        })
+    })
+
+    application.Router.Get("/users/{id}", func(req *request.Request, res *response.Response) error {
+        id := req.Param("id")
+        return res.JSON(map[string]string{
+            "user_id": id,
+        })
+    })
+
+    // Start server
+    application.Run(":5000")
+}</code></pre>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>GoLaravel - Built with Go. Inspired by Laravel.</p>
+            <p>273 tests passing</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - GoLaravel</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="/" class="logo">Go<span>Laravel</span></a>
+            <nav>
+                <a href="/">Home</a>
+                <a href="/docs">Documentation</a>
+            </nav>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <h4>Getting Started</h4>
+        <a href="#installation">Installation</a>
+        <a href="#quick-start">Quick Start</a>
+        
+        <h4>Core Concepts</h4>
+        <a href="#container">Service Container</a>
+        <a href="#routing">Routing</a>
+        <a href="#middleware">Middleware</a>
+        <a href="#request">Request</a>
+        <a href="#response">Response</a>
+        
+        <h4>Features</h4>
+        <a href="#validation">Validation</a>
+        <a href="#database">Database ORM</a>
+        <a href="#migrations">Migrations</a>
+        <a href="#views">Views</a>
+        <a href="#helpers">Helpers</a>
+        <a href="#config">Configuration</a>
+    </aside>
+
+    <main class="main-content">
+        <h1>GoLaravel Documentation</h1>
+        <p>Complete guide to building applications with GoLaravel.</p>
+
+        <section id="installation" class="docs-section">
+            <h2>Installation</h2>
+            <p>Add GoLaravel to your Go project:</p>
+            <pre><code>go get github.com/yourusername/golaravel</code></pre>
+        </section>
+
+        <section id="quick-start" class="docs-section">
+            <h2>Quick Start</h2>
+            <p>Create a new application and start the server:</p>
+            <pre><code>package main
+
+import (
+    "golaravel/app"
+    "golaravel/app/http/request"
+    "golaravel/app/http/response"
+)
+
+func main() {
+    application := app.New()
+    
+    application.Router.Get("/", func(req *request.Request, res *response.Response) error {
+        return res.JSON(map[string]string{"status": "ok"})
+    })
+    
+    application.Run(":5000")
+}</code></pre>
+        </section>
+
+        <section id="container" class="docs-section">
+            <h2>Service Container</h2>
+            <p>The service container provides dependency injection with bindings and singletons.</p>
+            
+            <h3>Binding Services</h3>
+            <pre><code>container := container.New()
+
+// Regular binding (new instance each time)
+container.Bind("logger", func(c *container.Container) interface{} {
+    return NewLogger()
+})
+
+// Singleton (same instance always)
+container.Singleton("database", func(c *container.Container) interface{} {
+    return NewDatabaseConnection()
+})
+
+// Store an existing instance
+container.Instance("config", myConfig)</code></pre>
+
+            <h3>Resolving Services</h3>
+            <pre><code>logger, err := container.Make("logger")
+if err != nil {
+    // Handle error
+}
+
+db, _ := container.Make("database")</code></pre>
+        </section>
+
+        <section id="routing" class="docs-section">
+            <h2>Routing</h2>
+            <p>Define expressive routes with support for parameters, groups, and middleware.</p>
+            
+            <h3>Basic Routes</h3>
+            <pre><code>router := routing.NewRouter()
+
+router.Get("/", homeHandler)
+router.Post("/users", createUserHandler)
+router.Put("/users/{id}", updateUserHandler)
+router.Delete("/users/{id}", deleteUserHandler)</code></pre>
+
+            <h3>Route Parameters</h3>
+            <pre><code>router.Get("/users/{id}", func(req *request.Request, res *response.Response) error {
+    id := req.Param("id")
+    return res.JSON(map[string]string{"id": id})
+})
+
+router.Get("/posts/{post}/comments/{comment}", func(req *request.Request, res *response.Response) error {
+    postID := req.Param("post")
+    commentID := req.Param("comment")
+    // ...
+})</code></pre>
+
+            <h3>Route Groups</h3>
+            <pre><code>router.Group("/api", func(r *routing.Router) {
+    r.Use(middleware.Auth(validateToken))
+    
+    r.Get("/users", listUsersHandler)
+    r.Post("/users", createUserHandler)
+    
+    r.Group("/v1", func(r *routing.Router) {
+        r.Get("/products", listProductsHandler)
+    })
+})</code></pre>
+
+            <h3>Named Routes</h3>
+            <pre><code>router.Get("/users/{id}", showUserHandler).Name("users.show")
+
+// Get URL for named route
+url := router.Route("users.show", map[string]string{"id": "123"})
+// Returns: /users/123</code></pre>
+        </section>
+
+        <section id="middleware" class="docs-section">
+            <h2>Middleware</h2>
+            <p>Built-in middleware for common tasks.</p>
+            
+            <h3>Available Middleware</h3>
+            <table class="api-table">
+                <tr>
+                    <th>Middleware</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td><code>Logger()</code></td>
+                    <td>Logs incoming requests with timing</td>
+                </tr>
+                <tr>
+                    <td><code>Recovery()</code></td>
+                    <td>Recovers from panics and returns 500 error</td>
+                </tr>
+                <tr>
+                    <td><code>CORS(origins)</code></td>
+                    <td>Handles Cross-Origin Resource Sharing</td>
+                </tr>
+                <tr>
+                    <td><code>Auth(validator)</code></td>
+                    <td>Token-based authentication</td>
+                </tr>
+                <tr>
+                    <td><code>BasicAuth(users)</code></td>
+                    <td>HTTP Basic Authentication</td>
+                </tr>
+                <tr>
+                    <td><code>RateLimiter(limit, window)</code></td>
+                    <td>Rate limiting by IP</td>
+                </tr>
+                <tr>
+                    <td><code>SecureHeaders()</code></td>
+                    <td>Adds security headers</td>
+                </tr>
+                <tr>
+                    <td><code>Timeout(duration)</code></td>
+                    <td>Request timeout handling</td>
+                </tr>
+                <tr>
+                    <td><code>ContentType(types)</code></td>
+                    <td>Validates Content-Type header</td>
+                </tr>
+                <tr>
+                    <td><code>TrimStrings()</code></td>
+                    <td>Trims whitespace from string inputs</td>
+                </tr>
+            </table>
+
+            <h3>Using Middleware</h3>
+            <pre><code>// Global middleware
+router.Use(middleware.Logger())
+router.Use(middleware.Recovery())
+router.Use(middleware.CORS("*"))
+
+// Group middleware
+router.Group("/api", func(r *routing.Router) {
+    r.Use(middleware.Auth(validateToken))
+    r.Use(middleware.RateLimiter(100, time.Minute))
+})</code></pre>
+
+            <h3>Custom Middleware</h3>
+            <pre><code>func MyMiddleware() routing.MiddlewareFunc {
+    return func(next routing.HandlerFunc) routing.HandlerFunc {
+        return func(req *request.Request, res *response.Response) error {
+            // Before handler
+            log.Println("Before request")
+            
+            err := next(req, res)
+            
+            // After handler
+            log.Println("After request")
+            
+            return err
+        }
+    }
+}</code></pre>
+        </section>
+
+        <section id="request" class="docs-section">
+            <h2>Request</h2>
+            <p>The Request object provides convenient access to HTTP request data.</p>
+            
+            <h3>Input Methods</h3>
+            <pre><code>// Route parameters
+id := req.Param("id")
+
+// Query string
+page := req.Query("page", "1")       // With default
+allQuery := req.QueryAll()           // All query params
+
+// JSON body
+var user User
+req.JSON(&user)
+
+// Form input
+name := req.Input("name", "default")
+
+// All input (merged query + body)
+all := req.All()</code></pre>
+
+            <h3>Request Information</h3>
+            <pre><code>req.Method()           // "GET", "POST", etc.
+req.URL()              // Full URL
+req.IP()               // Client IP
+req.UserAgent()        // User agent string
+req.Header("Accept")   // Get header value
+req.Headers()          // All headers
+req.Cookie("session")  // Get cookie value
+req.BearerToken()      // Extract Bearer token</code></pre>
+
+            <h3>Checks</h3>
+            <pre><code>req.Has("email")       // Check if input exists
+req.Filled("email")    // Check if input exists and not empty
+req.IsMethod("POST")   // Check HTTP method
+req.IsAjax()           // Check X-Requested-With header
+req.WantsJSON()        // Check Accept header
+req.Accepts("text/html") // Check Accept header</code></pre>
+        </section>
+
+        <section id="response" class="docs-section">
+            <h2>Response</h2>
+            <p>Build HTTP responses with a fluent API.</p>
+            
+            <h3>Response Types</h3>
+            <pre><code>// JSON response
+res.JSON(map[string]string{"status": "ok"})
+
+// HTML response
+res.HTML("&lt;h1&gt;Hello World&lt;/h1&gt;")
+
+// Plain text
+res.String("Hello World")
+
+// Redirect
+res.Redirect("/dashboard")
+
+// No content (204)
+res.NoContent()
+
+// File download
+res.Download("/path/to/file.pdf", "document.pdf")</code></pre>
+
+            <h3>Status Codes & Headers</h3>
+            <pre><code>// Set status code
+res.Status(201)
+
+// Set headers
+res.Header("X-Custom-Header", "value")
+
+// Chain methods
+res.Status(201).Header("Location", "/users/1").JSON(user)</code></pre>
+
+            <h3>Error Responses</h3>
+            <pre><code>res.NotFound("User not found")
+res.BadRequest("Invalid input")
+res.Unauthorized("Please login")
+res.Forbidden("Access denied")
+res.InternalServerError("Something went wrong")
+res.ValidationError(errors)</code></pre>
+        </section>
+
+        <section id="validation" class="docs-section">
+            <h2>Validation</h2>
+            <p>Laravel-style validation rules for your data.</p>
+            
+            <h3>Basic Usage</h3>
+            <pre><code>data := map[string]interface{}{
+    "name":  "John",
+    "email": "john@example.com",
+    "age":   25,
+}
+
+rules := map[string][]string{
+    "name":  {"required", "min:2", "max:50"},
+    "email": {"required", "email"},
+    "age":   {"required", "integer", "between:18,100"},
+}
+
+v := validation.Make(data, rules)
+
+if v.Fails() {
+    errors := v.Errors()
+    // Handle validation errors
+}
+
+if v.Passes() {
+    // Validation passed
+}</code></pre>
+
+            <h3>Available Rules</h3>
+            <table class="api-table">
+                <tr>
+                    <th>Rule</th>
+                    <th>Description</th>
+                </tr>
+                <tr><td><code>required</code></td><td>Field must be present and not empty</td></tr>
+                <tr><td><code>nullable</code></td><td>Field can be empty (skips other rules if empty)</td></tr>
+                <tr><td><code>email</code></td><td>Must be valid email format</td></tr>
+                <tr><td><code>url</code></td><td>Must be valid URL</td></tr>
+                <tr><td><code>min:n</code></td><td>Minimum length/value</td></tr>
+                <tr><td><code>max:n</code></td><td>Maximum length/value</td></tr>
+                <tr><td><code>between:min,max</code></td><td>Value between min and max</td></tr>
+                <tr><td><code>size:n</code></td><td>Exact length</td></tr>
+                <tr><td><code>in:a,b,c</code></td><td>Value must be one of listed options</td></tr>
+                <tr><td><code>not_in:a,b,c</code></td><td>Value must not be listed</td></tr>
+                <tr><td><code>alpha</code></td><td>Only alphabetic characters</td></tr>
+                <tr><td><code>alpha_num</code></td><td>Only alphanumeric characters</td></tr>
+                <tr><td><code>numeric</code></td><td>Must be numeric</td></tr>
+                <tr><td><code>integer</code></td><td>Must be integer</td></tr>
+                <tr><td><code>boolean</code></td><td>Must be boolean</td></tr>
+                <tr><td><code>confirmed</code></td><td>Must match field_confirmation</td></tr>
+                <tr><td><code>regex:pattern</code></td><td>Must match regex pattern</td></tr>
+                <tr><td><code>date</code></td><td>Must be valid date</td></tr>
+                <tr><td><code>uuid</code></td><td>Must be valid UUID</td></tr>
+                <tr><td><code>ip</code></td><td>Must be valid IP address</td></tr>
+                <tr><td><code>json</code></td><td>Must be valid JSON</td></tr>
+            </table>
+        </section>
+
+        <section id="database" class="docs-section">
+            <h2>Database ORM</h2>
+            <p>Query builder with a fluent interface.</p>
+            
+            <h3>Query Builder</h3>
+            <pre><code>qb := orm.NewQueryBuilder("users")
+
+// SELECT with conditions
+qb.Select("id", "name", "email").
+   Where("active", "=", true).
+   Where("age", ">", 18).
+   OrderBy("created_at", "DESC").
+   Limit(10).
+   Offset(0)
+
+sql := qb.ToSQL()
+// SELECT id, name, email FROM users WHERE active = ? AND age > ? ORDER BY created_at DESC LIMIT 10 OFFSET 0</code></pre>
+
+            <h3>Where Clauses</h3>
+            <pre><code>qb.Where("status", "=", "active")
+qb.OrWhere("role", "=", "admin")
+qb.WhereNull("deleted_at")
+qb.WhereNotNull("email")
+qb.WhereIn("id", []int{1, 2, 3})</code></pre>
+
+            <h3>Joins</h3>
+            <pre><code>qb.Join("posts", "users.id", "=", "posts.user_id")
+qb.LeftJoin("profiles", "users.id", "=", "profiles.user_id")
+qb.RightJoin("orders", "users.id", "=", "orders.user_id")</code></pre>
+
+            <h3>Grouping & Aggregates</h3>
+            <pre><code>qb.Select("department", "COUNT(*) as count").
+   GroupBy("department").
+   Having("COUNT(*)", ">", 5)</code></pre>
+
+            <h3>Models</h3>
+            <pre><code>type User struct {
+    orm.Model
+    Name  string
+    Email string
+}
+
+user := &User{}
+user.SetTable("users")
+user.Fill(map[string]interface{}{
+    "name": "John",
+    "email": "john@example.com",
+})</code></pre>
+        </section>
+
+        <section id="migrations" class="docs-section">
+            <h2>Migrations</h2>
+            <p>Schema builder for database migrations.</p>
+            
+            <h3>Creating Tables</h3>
+            <pre><code>sql := migration.CreateTable("users", func(bp *migration.Blueprint) {
+    bp.ID()                              // Auto-increment primary key
+    bp.String("name", 255)
+    bp.String("email", 255).Unique()
+    bp.String("password", 255)
+    bp.Boolean("active").Default("true")
+    bp.Timestamps()                      // created_at, updated_at
+    bp.SoftDeletes()                     // deleted_at
+})</code></pre>
+
+            <h3>Column Types</h3>
+            <table class="api-table">
+                <tr>
+                    <th>Method</th>
+                    <th>SQL Type</th>
+                </tr>
+                <tr><td><code>ID()</code></td><td>BIGSERIAL PRIMARY KEY</td></tr>
+                <tr><td><code>String(name, len)</code></td><td>VARCHAR(len)</td></tr>
+                <tr><td><code>Text(name)</code></td><td>TEXT</td></tr>
+                <tr><td><code>Integer(name)</code></td><td>INTEGER</td></tr>
+                <tr><td><code>BigInteger(name)</code></td><td>BIGINT</td></tr>
+                <tr><td><code>Float(name)</code></td><td>REAL</td></tr>
+                <tr><td><code>Decimal(name, p, s)</code></td><td>DECIMAL(p,s)</td></tr>
+                <tr><td><code>Boolean(name)</code></td><td>BOOLEAN</td></tr>
+                <tr><td><code>Date(name)</code></td><td>DATE</td></tr>
+                <tr><td><code>DateTime(name)</code></td><td>TIMESTAMP</td></tr>
+                <tr><td><code>JSON(name)</code></td><td>JSONB</td></tr>
+                <tr><td><code>UUID(name)</code></td><td>UUID</td></tr>
+            </table>
+
+            <h3>Column Modifiers</h3>
+            <pre><code>bp.String("email", 255).Nullable().Unique()
+bp.Integer("count").NotNull().Default("0")
+bp.ForeignID("user_id").References("id").On("users").OnDelete("CASCADE")</code></pre>
+
+            <h3>Dropping Tables</h3>
+            <pre><code>sql := migration.DropTable("users")
+sql := migration.DropTableCascade("users")</code></pre>
+        </section>
+
+        <section id="views" class="docs-section">
+            <h2>Views</h2>
+            <p>Template engine for rendering HTML.</p>
+            
+            <h3>Basic Usage</h3>
+            <pre><code>v := view.New("./templates")
+
+// Share data across all views
+v.Share("appName", "My Application")
+
+// Render a template
+html, err := v.Render("home", map[string]interface{}{
+    "title": "Welcome",
+    "user":  currentUser,
+})</code></pre>
+
+            <h3>Template Example</h3>
+            <pre><code>&lt;!-- templates/home.html --&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;{{.title}} - {{.appName}}&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;{{upper .title}}&lt;/h1&gt;
+    &lt;p&gt;Hello, {{.user.Name}}!&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+        </section>
+
+        <section id="helpers" class="docs-section">
+            <h2>Helpers</h2>
+            <p>Utility functions for common operations.</p>
+            
+            <h3>String Helpers (Str)</h3>
+            <pre><code>support.Str.Slug("Hello World")        // "hello-world"
+support.Str.Camel("hello_world")       // "helloWorld"
+support.Str.Snake("HelloWorld")        // "hello_world"
+support.Str.Studly("hello_world")      // "HelloWorld"
+support.Str.Kebab("helloWorld")        // "hello-world"
+support.Str.Title("hello world")       // "Hello World"
+support.Str.Upper("hello")             // "HELLO"
+support.Str.Lower("HELLO")             // "hello"
+support.Str.Limit("Long text...", 10)  // "Long text..."
+support.Str.Random(16)                 // Random string
+support.Str.UUID()                     // UUID v4
+support.Str.Contains("hello", "ell")   // true
+support.Str.StartsWith("hello", "he")  // true
+support.Str.EndsWith("hello", "lo")    // true
+support.Str.Replace("hello", "l", "L") // "heLLo"
+support.Str.Trim("  hello  ")          // "hello"
+support.Str.Plural("user")             // "users"
+support.Str.Singular("users")          // "user"</code></pre>
+
+            <h3>Collection Helpers</h3>
+            <pre><code>items := []int{1, 2, 3, 4, 5}
+col := support.Collect(items)
+
+col.First()                // 1
+col.Last()                 // 5
+col.Count()                // 5
+col.IsEmpty()              // false
+col.Contains(3)            // true
+col.Reverse()              // [5, 4, 3, 2, 1]
+col.Chunk(2)               // [[1,2], [3,4], [5]]
+col.Filter(func(x int) bool { return x > 2 })  // [3, 4, 5]
+col.Map(func(x int) int { return x * 2 })      // [2, 4, 6, 8, 10]
+col.Sum()                  // 15</code></pre>
+
+            <h3>Carbon (Date/Time)</h3>
+            <pre><code>now := support.Carbon(time.Now())
+
+now.DiffForHumans()        // "just now"
+now.AddDays(5)
+now.SubDays(3)
+now.AddHours(2)
+now.AddMinutes(30)
+now.StartOfDay()
+now.EndOfDay()
+now.IsToday()
+now.IsFuture()
+now.IsPast()
+now.Format("2006-01-02")</code></pre>
+        </section>
+
+        <section id="config" class="docs-section">
+            <h2>Configuration</h2>
+            <p>Manage application configuration.</p>
+            
+            <h3>Basic Usage</h3>
+            <pre><code>cfg := config.New()
+
+// Set values (supports dot notation)
+cfg.Set("app.name", "My App")
+cfg.Set("database.host", "localhost")
+cfg.Set("database.port", 5432)
+
+// Get values with defaults
+name := cfg.GetString("app.name", "Default App")
+port := cfg.GetInt("database.port", 3306)
+debug := cfg.GetBool("app.debug", false)</code></pre>
+
+            <h3>Environment Variables</h3>
+            <pre><code>// Load from environment
+cfg.LoadEnv("MYAPP")  // Loads MYAPP_* variables
+
+// Access env values
+host := config.Env("DATABASE_HOST", "localhost")
+port := config.EnvInt("DATABASE_PORT", 5432)
+debug := config.EnvBool("APP_DEBUG", false)</code></pre>
+
+            <h3>Checking Values</h3>
+            <pre><code>cfg.Has("database.host")   // true if key exists
+cfg.All()                  // Get all config as map</code></pre>
+        </section>
+
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>GoLaravel - Built with Go. Inspired by Laravel.</p>
+            <p>273 tests passing</p>
+        </div>
+    </footer>
+</body>
+</html>
