@@ -1,0 +1,99 @@
+# GoLaravel - A Laravel-Inspired Go Framework
+
+## Overview
+GoLaravel is a Go framework that mimics Laravel's elegant design patterns and developer experience. It provides familiar Laravel concepts implemented in idiomatic Go.
+
+## Project Structure
+```
+golaravel/
+├── app/
+│   ├── application.go         # Main application bootstrap
+│   ├── container/             # Service container (dependency injection)
+│   │   └── container.go
+│   ├── config/                # Configuration management
+│   │   └── config.go
+│   ├── http/
+│   │   ├── controllers/       # Base controller with validation
+│   │   │   └── controller.go
+│   │   ├── middleware/        # Built-in middleware (CORS, Auth, Rate Limiting, etc.)
+│   │   │   └── middleware.go
+│   │   ├── request/           # HTTP request wrapper
+│   │   │   └── request.go
+│   │   └── response/          # HTTP response wrapper
+│   │       └── response.go
+│   ├── routing/               # Router with groups, params, middleware
+│   │   └── router.go
+│   ├── database/
+│   │   ├── orm/               # Query builder and ORM
+│   │   │   └── model.go
+│   │   └── migration/         # Schema builder and migrations
+│   │       └── migration.go
+│   ├── validation/            # Laravel-style validation
+│   │   └── validation.go
+│   ├── view/                  # Template engine
+│   │   └── view.go
+│   └── support/               # Helper functions (Str, Collection, Carbon, etc.)
+│       └── helpers.go
+└── examples/
+    └── demo/                  # Example application
+        └── main.go
+```
+
+## Key Features
+
+### 1. Service Container
+- Dependency injection with bindings and singletons
+- Automatic resolution with `inject` struct tags
+- Laravel-like `Make()` and `Instance()` methods
+
+### 2. Routing
+- Expressive route definitions: `router.Get()`, `router.Post()`, etc.
+- Route parameters: `/users/{id}`
+- Route groups with prefixes and middleware
+- Named routes
+- 404 handler customization
+
+### 3. Middleware
+- Logger, Recovery, CORS, Auth, Rate Limiting
+- Secure headers, Basic Auth, Timeout
+- Easy to create custom middleware
+
+### 4. Request/Response
+- Request input helpers: `Param()`, `Query()`, `JSON()`, `All()`
+- Response methods: `JSON()`, `HTML()`, `Redirect()`
+- Error responses: `NotFound()`, `BadRequest()`, `ValidationError()`
+
+### 5. Validation
+- Laravel-style rules: `required`, `email`, `min`, `max`, `between`, `in`, etc.
+- Easy integration with controllers
+
+### 6. Database
+- Query builder with fluent interface
+- ORM with models
+- Migration system with schema builder
+
+### 7. Views
+- Template engine with shared data
+- Built-in helper functions
+
+## Running the Demo
+```bash
+cd golaravel
+go run ./examples/demo/
+```
+
+The server starts on port 5000.
+
+## Available Demo Endpoints
+- `GET /` - Home page
+- `GET /about` - About information
+- `GET /user/{id}` - Get user by ID
+- `POST /users` - Create user (with validation)
+- `GET /api/status` - API health status
+- `GET /api/v1/products` - List products with pagination
+- `GET /validate?email=...&name=...&age=...&password=...` - Validation demo
+
+## Recent Changes
+- Created initial framework structure (2026-01-30)
+- Implemented all core components
+- Added example demo application
