@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Documentation - GoLaravel</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
 </head>
 <body>
     <header>
@@ -53,13 +54,13 @@
         <section id="installation" class="docs-section">
             <h2>Installation</h2>
             <p>Add GoLaravel to your Go project:</p>
-            <pre><code>go get github.com/yourusername/golaravel</code></pre>
+            <pre><code class="language-bash">go get github.com/yourusername/golaravel</code></pre>
         </section>
 
         <section id="quick-start" class="docs-section">
             <h2>Quick Start</h2>
             <p>Create a new application and start the server:</p>
-            <pre><code>package main
+            <pre><code class="language-go">package main
 
 import (
     "golaravel/app"
@@ -83,7 +84,7 @@ func main() {
             <p>The service container provides dependency injection with bindings and singletons.</p>
             
             <h3>Binding Services</h3>
-            <pre><code>container := container.New()
+            <pre><code class="language-go">container := container.New()
 
 // Regular binding (new instance each time)
 container.Bind("logger", func(c *container.Container) interface{} {
@@ -99,7 +100,7 @@ container.Singleton("database", func(c *container.Container) interface{} {
 container.Instance("config", myConfig)</code></pre>
 
             <h3>Resolving Services</h3>
-            <pre><code>logger, err := container.Make("logger")
+            <pre><code class="language-go">logger, err := container.Make("logger")
 if err != nil {
     // Handle error
 }
@@ -112,7 +113,7 @@ db, _ := container.Make("database")</code></pre>
             <p>Define expressive routes with support for parameters, groups, and middleware.</p>
             
             <h3>Basic Routes</h3>
-            <pre><code>router := routing.NewRouter()
+            <pre><code class="language-go">router := routing.NewRouter()
 
 router.Get("/", homeHandler)
 router.Post("/users", createUserHandler)
@@ -120,7 +121,7 @@ router.Put("/users/{id}", updateUserHandler)
 router.Delete("/users/{id}", deleteUserHandler)</code></pre>
 
             <h3>Route Parameters</h3>
-            <pre><code>router.Get("/users/{id}", func(req *request.Request, res *response.Response) error {
+            <pre><code class="language-go">router.Get("/users/{id}", func(req *request.Request, res *response.Response) error {
     id := req.Param("id")
     return res.JSON(map[string]string{"id": id})
 })
@@ -132,7 +133,7 @@ router.Get("/posts/{post}/comments/{comment}", func(req *request.Request, res *r
 })</code></pre>
 
             <h3>Route Groups</h3>
-            <pre><code>router.Group("/api", func(r *routing.Router) {
+            <pre><code class="language-go">router.Group("/api", func(r *routing.Router) {
     r.Use(middleware.Auth(validateToken))
     
     r.Get("/users", listUsersHandler)
@@ -144,7 +145,7 @@ router.Get("/posts/{post}/comments/{comment}", func(req *request.Request, res *r
 })</code></pre>
 
             <h3>Named Routes</h3>
-            <pre><code>router.Get("/users/{id}", showUserHandler).Name("users.show")
+            <pre><code class="language-go">router.Get("/users/{id}", showUserHandler).Name("users.show")
 
 // Get URL for named route
 url := router.Route("users.show", map[string]string{"id": "123"})
@@ -204,7 +205,7 @@ url := router.Route("users.show", map[string]string{"id": "123"})
             </table>
 
             <h3>Using Middleware</h3>
-            <pre><code>// Global middleware
+            <pre><code class="language-go">// Global middleware
 router.Use(middleware.Logger())
 router.Use(middleware.Recovery())
 router.Use(middleware.CORS("*"))
@@ -216,7 +217,7 @@ router.Group("/api", func(r *routing.Router) {
 })</code></pre>
 
             <h3>Custom Middleware</h3>
-            <pre><code>func MyMiddleware() routing.MiddlewareFunc {
+            <pre><code class="language-go">func MyMiddleware() routing.MiddlewareFunc {
     return func(next routing.HandlerFunc) routing.HandlerFunc {
         return func(req *request.Request, res *response.Response) error {
             // Before handler
@@ -238,7 +239,7 @@ router.Group("/api", func(r *routing.Router) {
             <p>The Request object provides convenient access to HTTP request data.</p>
             
             <h3>Input Methods</h3>
-            <pre><code>// Route parameters
+            <pre><code class="language-go">// Route parameters
 id := req.Param("id")
 
 // Query string
@@ -256,7 +257,7 @@ name := req.Input("name", "default")
 all := req.All()</code></pre>
 
             <h3>Request Information</h3>
-            <pre><code>req.Method()           // "GET", "POST", etc.
+            <pre><code class="language-go">req.Method()           // "GET", "POST", etc.
 req.URL()              // Full URL
 req.IP()               // Client IP
 req.UserAgent()        // User agent string
@@ -266,7 +267,7 @@ req.Cookie("session")  // Get cookie value
 req.BearerToken()      // Extract Bearer token</code></pre>
 
             <h3>Checks</h3>
-            <pre><code>req.Has("email")       // Check if input exists
+            <pre><code class="language-go">req.Has("email")       // Check if input exists
 req.Filled("email")    // Check if input exists and not empty
 req.IsMethod("POST")   // Check HTTP method
 req.IsAjax()           // Check X-Requested-With header
@@ -279,7 +280,7 @@ req.Accepts("text/html") // Check Accept header</code></pre>
             <p>Build HTTP responses with a fluent API.</p>
             
             <h3>Response Types</h3>
-            <pre><code>// JSON response
+            <pre><code class="language-go">// JSON response
 res.JSON(map[string]string{"status": "ok"})
 
 // HTML response
@@ -298,7 +299,7 @@ res.NoContent()
 res.Download("/path/to/file.pdf", "document.pdf")</code></pre>
 
             <h3>Status Codes & Headers</h3>
-            <pre><code>// Set status code
+            <pre><code class="language-go">// Set status code
 res.Status(201)
 
 // Set headers
@@ -308,7 +309,7 @@ res.Header("X-Custom-Header", "value")
 res.Status(201).Header("Location", "/users/1").JSON(user)</code></pre>
 
             <h3>Error Responses</h3>
-            <pre><code>res.NotFound("User not found")
+            <pre><code class="language-go">res.NotFound("User not found")
 res.BadRequest("Invalid input")
 res.Unauthorized("Please login")
 res.Forbidden("Access denied")
@@ -321,7 +322,7 @@ res.ValidationError(errors)</code></pre>
             <p>Laravel-style validation rules for your data.</p>
             
             <h3>Basic Usage</h3>
-            <pre><code>data := map[string]interface{}{
+            <pre><code class="language-go">data := map[string]interface{}{
     "name":  "John",
     "email": "john@example.com",
     "age":   25,
@@ -379,7 +380,7 @@ if v.Passes() {
             <p>Query builder with a fluent interface.</p>
             
             <h3>Query Builder</h3>
-            <pre><code>qb := orm.NewQueryBuilder("users")
+            <pre><code class="language-go">qb := orm.NewQueryBuilder("users")
 
 // SELECT with conditions
 qb.Select("id", "name", "email").
@@ -393,24 +394,24 @@ sql := qb.ToSQL()
 // SELECT id, name, email FROM users WHERE active = ? AND age > ? ORDER BY created_at DESC LIMIT 10 OFFSET 0</code></pre>
 
             <h3>Where Clauses</h3>
-            <pre><code>qb.Where("status", "=", "active")
+            <pre><code class="language-go">qb.Where("status", "=", "active")
 qb.OrWhere("role", "=", "admin")
 qb.WhereNull("deleted_at")
 qb.WhereNotNull("email")
 qb.WhereIn("id", []int{1, 2, 3})</code></pre>
 
             <h3>Joins</h3>
-            <pre><code>qb.Join("posts", "users.id", "=", "posts.user_id")
+            <pre><code class="language-go">qb.Join("posts", "users.id", "=", "posts.user_id")
 qb.LeftJoin("profiles", "users.id", "=", "profiles.user_id")
 qb.RightJoin("orders", "users.id", "=", "orders.user_id")</code></pre>
 
             <h3>Grouping & Aggregates</h3>
-            <pre><code>qb.Select("department", "COUNT(*) as count").
+            <pre><code class="language-go">qb.Select("department", "COUNT(*) as count").
    GroupBy("department").
    Having("COUNT(*)", ">", 5)</code></pre>
 
             <h3>Models</h3>
-            <pre><code>type User struct {
+            <pre><code class="language-go">type User struct {
     orm.Model
     Name  string
     Email string
@@ -429,7 +430,7 @@ user.Fill(map[string]interface{}{
             <p>Database transactions for atomic operations.</p>
             
             <h3>Using Transaction Closure</h3>
-            <pre><code>err := conn.Transaction(func(tx *orm.Connection) error {
+            <pre><code class="language-go">err := conn.Transaction(func(tx *orm.Connection) error {
     _, err := tx.Query("users").Insert(map[string]interface{}{
         "name": "John",
         "email": "john@example.com",
@@ -450,7 +451,7 @@ if err != nil {
 }</code></pre>
 
             <h3>Manual Transaction Control</h3>
-            <pre><code>tx, err := conn.Begin()
+            <pre><code class="language-go">tx, err := conn.Begin()
 if err != nil {
     return err
 }
@@ -472,13 +473,13 @@ if err != nil {
             <p>Eloquent-style model relationships.</p>
             
             <h3>HasOne</h3>
-            <pre><code>// User has one Profile
+            <pre><code class="language-go">// User has one Profile
 hasOne := conn.HasOne("profiles", "user_id", "id", userID)
 row := hasOne.Get()
 row.Scan(&profile.ID, &profile.Bio)</code></pre>
 
             <h3>HasMany</h3>
-            <pre><code>// User has many Posts
+            <pre><code class="language-go">// User has many Posts
 hasMany := conn.HasMany("posts", "user_id", "id", userID)
 rows, _ := hasMany.Get()
 defer rows.Close()
@@ -488,13 +489,13 @@ for rows.Next() {
 }</code></pre>
 
             <h3>BelongsTo</h3>
-            <pre><code>// Post belongs to User
+            <pre><code class="language-go">// Post belongs to User
 belongsTo := conn.BelongsTo("users", "user_id", "id", post.UserID)
 row := belongsTo.Get()
 row.Scan(&user.ID, &user.Name)</code></pre>
 
             <h3>BelongsToMany (Many-to-Many)</h3>
-            <pre><code>// User belongs to many Roles through role_user pivot table
+            <pre><code class="language-go">// User belongs to many Roles through role_user pivot table
 belongsToMany := conn.BelongsToMany(
     "roles",        // related table
     "role_user",    // pivot table
@@ -522,7 +523,7 @@ belongsToMany.Sync([]interface{}{1, 3})</code></pre>
             <p>Schema builder for database migrations.</p>
             
             <h3>Creating Tables</h3>
-            <pre><code>sql := migration.CreateTable("users", func(bp *migration.Blueprint) {
+            <pre><code class="language-go">sql := migration.CreateTable("users", func(bp *migration.Blueprint) {
     bp.ID()                              // Auto-increment primary key
     bp.String("name", 255)
     bp.String("email", 255).Unique()
@@ -553,12 +554,12 @@ belongsToMany.Sync([]interface{}{1, 3})</code></pre>
             </table>
 
             <h3>Column Modifiers</h3>
-            <pre><code>bp.String("email", 255).Nullable().Unique()
+            <pre><code class="language-go">bp.String("email", 255).Nullable().Unique()
 bp.Integer("count").NotNull().Default("0")
 bp.ForeignID("user_id").References("id").On("users").OnDelete("CASCADE")</code></pre>
 
             <h3>Dropping Tables</h3>
-            <pre><code>sql := migration.DropTable("users")
+            <pre><code class="language-go">sql := migration.DropTable("users")
 sql := migration.DropTableCascade("users")</code></pre>
         </section>
 
@@ -567,7 +568,7 @@ sql := migration.DropTableCascade("users")</code></pre>
             <p>Template engine for rendering HTML.</p>
             
             <h3>Basic Usage</h3>
-            <pre><code>v := view.New("./templates")
+            <pre><code class="language-go">v := view.New("./templates")
 
 // Share data across all views
 v.Share("appName", "My Application")
@@ -579,7 +580,7 @@ html, err := v.Render("home", map[string]interface{}{
 })</code></pre>
 
             <h3>Template Example</h3>
-            <pre><code>&lt;!-- templates/home.html --&gt;
+            <pre><code class="language-go">&lt;!-- templates/home.html --&gt;
 &lt;html&gt;
 &lt;head&gt;
     &lt;title&gt;{{.title}} - {{.appName}}&lt;/title&gt;
@@ -596,7 +597,7 @@ html, err := v.Render("home", map[string]interface{}{
             <p>Utility functions for common operations.</p>
             
             <h3>String Helpers (Str)</h3>
-            <pre><code>support.Str.Slug("Hello World")        // "hello-world"
+            <pre><code class="language-go">support.Str.Slug("Hello World")        // "hello-world"
 support.Str.Camel("hello_world")       // "helloWorld"
 support.Str.Snake("HelloWorld")        // "hello_world"
 support.Str.Studly("hello_world")      // "HelloWorld"
@@ -616,7 +617,7 @@ support.Str.Plural("user")             // "users"
 support.Str.Singular("users")          // "user"</code></pre>
 
             <h3>Collection Helpers</h3>
-            <pre><code>items := []int{1, 2, 3, 4, 5}
+            <pre><code class="language-go">items := []int{1, 2, 3, 4, 5}
 col := support.Collect(items)
 
 col.First()                // 1
@@ -631,7 +632,7 @@ col.Map(func(x int) int { return x * 2 })      // [2, 4, 6, 8, 10]
 col.Sum()                  // 15</code></pre>
 
             <h3>Carbon (Date/Time)</h3>
-            <pre><code>now := support.Carbon(time.Now())
+            <pre><code class="language-go">now := support.Carbon(time.Now())
 
 now.DiffForHumans()        // "just now"
 now.AddDays(5)
@@ -651,7 +652,7 @@ now.Format("2006-01-02")</code></pre>
             <p>Manage application configuration.</p>
             
             <h3>Basic Usage</h3>
-            <pre><code>cfg := config.New()
+            <pre><code class="language-go">cfg := config.New()
 
 // Set values (supports dot notation)
 cfg.Set("app.name", "My App")
@@ -664,7 +665,7 @@ port := cfg.GetInt("database.port", 3306)
 debug := cfg.GetBool("app.debug", false)</code></pre>
 
             <h3>Environment Variables</h3>
-            <pre><code>// Load from environment
+            <pre><code class="language-go">// Load from environment
 cfg.LoadEnv("MYAPP")  // Loads MYAPP_* variables
 
 // Access env values
@@ -673,7 +674,7 @@ port := config.EnvInt("DATABASE_PORT", 5432)
 debug := config.EnvBool("APP_DEBUG", false)</code></pre>
 
             <h3>Checking Values</h3>
-            <pre><code>cfg.Has("database.host")   // true if key exists
+            <pre><code class="language-go">cfg.Has("database.host")   // true if key exists
 cfg.All()                  // Get all config as map</code></pre>
         </section>
 
@@ -682,7 +683,7 @@ cfg.All()                  // Get all config as map</code></pre>
             <p>Secure password hashing and token-based authentication.</p>
             
             <h3>Password Hashing</h3>
-            <pre><code>import "golaravel/app/auth"
+            <pre><code class="language-go">import "golaravel/app/auth"
 
 // Hash a password
 hash, err := auth.Hash("secret123")
@@ -702,7 +703,7 @@ token := auth.GenerateToken(32)
 // Returns: "a1b2c3d4e5f6..."</code></pre>
 
             <h3>Token Guard</h3>
-            <pre><code>// Create guard with token resolver
+            <pre><code class="language-go">// Create guard with token resolver
 guard := auth.NewTokenGuard(func(token string) (user, userID interface{}, err error) {
     // Look up user by token
     user, err := findUserByToken(token)
@@ -738,7 +739,7 @@ guard.Logout()</code></pre>
             <p>In-memory cache store with expiration support.</p>
             
             <h3>Basic Operations</h3>
-            <pre><code>import "golaravel/app/cache"
+            <pre><code class="language-go">import "golaravel/app/cache"
 
 store := cache.NewMemoryStore()
 
@@ -766,13 +767,13 @@ store.Forget("user:1")
 store.Flush()</code></pre>
 
             <h3>Remember Pattern</h3>
-            <pre><code>// Get from cache or compute and store
+            <pre><code class="language-go">// Get from cache or compute and store
 value := store.Remember("expensive-query", 10*time.Minute, func() interface{} {
     return computeExpensiveValue()
 })</code></pre>
 
             <h3>Increment/Decrement</h3>
-            <pre><code>store.Put("counter", 0, time.Hour)
+            <pre><code class="language-go">store.Put("counter", 0, time.Hour)
 
 newVal := store.Increment("counter", 1)  // Returns 1
 newVal = store.Increment("counter", 5)   // Returns 6
@@ -784,7 +785,7 @@ newVal = store.Decrement("counter", 2)   // Returns 4</code></pre>
             <p>Session management with flash data support.</p>
             
             <h3>Basic Usage</h3>
-            <pre><code>import "golaravel/app/session"
+            <pre><code class="language-go">import "golaravel/app/session"
 
 // Create session manager with memory store
 store := session.NewMemoryStorage()
@@ -816,7 +817,7 @@ sess.Forget("cart")
 sess.Flush()</code></pre>
 
             <h3>Flash Data</h3>
-            <pre><code>// Flash data is available for ONE request only
+            <pre><code class="language-go">// Flash data is available for ONE request only
 sess.Flash("message", "User created successfully!")
 sess.Flash("error", "Invalid input")
 
@@ -830,7 +831,7 @@ sess.Reflash()
 sess.AgeFlashData()</code></pre>
 
             <h3>Session Security</h3>
-            <pre><code>// Regenerate session ID (prevent fixation)
+            <pre><code class="language-go">// Regenerate session ID (prevent fixation)
 sess.Regenerate()
 
 // Invalidate session (logout)
@@ -845,7 +846,7 @@ manager.Destroy(sessionID)</code></pre>
             <p>Event dispatcher for decoupled application architecture.</p>
             
             <h3>Basic Usage</h3>
-            <pre><code>import "golaravel/app/events"
+            <pre><code class="language-go">import "golaravel/app/events"
 
 dispatcher := events.NewDispatcher()
 
@@ -865,13 +866,13 @@ dispatcher.Listen("user.created", func(data interface{}) {
 dispatcher.Dispatch("user.created", newUser)</code></pre>
 
             <h3>Wildcard Listeners</h3>
-            <pre><code>// Listen to all user events
+            <pre><code class="language-go">// Listen to all user events
 dispatcher.Listen("user.*", func(data interface{}) {
     logUserActivity(data)
 })</code></pre>
 
             <h3>Event Subscribers</h3>
-            <pre><code>// Subscriber groups related listeners
+            <pre><code class="language-go">// Subscriber groups related listeners
 type UserEventSubscriber struct{}
 
 func (s *UserEventSubscriber) Subscribe(d *events.Dispatcher) {
@@ -891,7 +892,7 @@ func (s *UserEventSubscriber) onUserDeleted(data interface{}) {
 dispatcher.Subscribe(&UserEventSubscriber{})</code></pre>
 
             <h3>Managing Listeners</h3>
-            <pre><code>// Check if event has listeners
+            <pre><code class="language-go">// Check if event has listeners
 if dispatcher.HasListeners("user.created") {
     // Has at least one listener
 }
@@ -908,5 +909,8 @@ dispatcher.Forget("user.created")</code></pre>
             <p>327 tests passing</p>
         </div>
     </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
 </body>
 </html>
