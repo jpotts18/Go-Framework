@@ -111,6 +111,17 @@ All 273 tests pass, covering:
 - Migrations (schema builder)
 - Support helpers (Str, Collection, Carbon)
 
+## Documentation Website
+The library includes a hosted documentation site with:
+- Homepage with features overview
+- Comprehensive documentation covering all framework components
+- Sidebar navigation for easy browsing
+
+Run the docs server:
+```bash
+cd golaravel && go run ./docs/
+```
+
 ## Recent Changes
 - Created initial framework structure (2026-01-30)
 - Implemented all core components
@@ -118,3 +129,4 @@ All 273 tests pass, covering:
 - Added comprehensive test suite with 273 tests (2026-01-30)
 - Fixed nullable validation to skip subsequent rules when field is empty
 - Fixed Config.Get() to support flat keys from LoadEnv
+- Added documentation website with comprehensive guides (2026-01-30)
