@@ -32,10 +32,18 @@
         <h4>Features</h4>
         <a href="#validation">Validation</a>
         <a href="#database">Database ORM</a>
+        <a href="#transactions">Transactions</a>
+        <a href="#relationships">Relationships</a>
         <a href="#migrations">Migrations</a>
         <a href="#views">Views</a>
         <a href="#helpers">Helpers</a>
         <a href="#config">Configuration</a>
+        
+        <h4>Security & State</h4>
+        <a href="#auth">Authentication</a>
+        <a href="#cache">Caching</a>
+        <a href="#sessions">Sessions</a>
+        <a href="#events">Events</a>
     </aside>
 
     <main class="main-content">
@@ -416,6 +424,99 @@ user.Fill(map[string]interface{}{
 })</code></pre>
         </section>
 
+        <section id="transactions" class="docs-section">
+            <h2>Transactions</h2>
+            <p>Database transactions for atomic operations.</p>
+            
+            <h3>Using Transaction Closure</h3>
+            <pre><code>err := conn.Transaction(func(tx *orm.Connection) error {
+    _, err := tx.Query("users").Insert(map[string]interface{}{
+        "name": "John",
+        "email": "john@example.com",
+    })
+    if err != nil {
+        return err // Rollback on error
+    }
+    
+    _, err = tx.Query("profiles").Insert(map[string]interface{}{
+        "user_id": 1,
+        "bio": "Hello World",
+    })
+    return err
+})
+
+if err != nil {
+    // Transaction was rolled back
+}</code></pre>
+
+            <h3>Manual Transaction Control</h3>
+            <pre><code>tx, err := conn.Begin()
+if err != nil {
+    return err
+}
+
+_, err = tx.Query("users").Insert(data)
+if err != nil {
+    tx.Rollback()
+    return err
+}
+
+err = tx.Commit()
+if err != nil {
+    return err
+}</code></pre>
+        </section>
+
+        <section id="relationships" class="docs-section">
+            <h2>Relationships</h2>
+            <p>Eloquent-style model relationships.</p>
+            
+            <h3>HasOne</h3>
+            <pre><code>// User has one Profile
+hasOne := conn.HasOne("profiles", "user_id", "id", userID)
+row := hasOne.Get()
+row.Scan(&profile.ID, &profile.Bio)</code></pre>
+
+            <h3>HasMany</h3>
+            <pre><code>// User has many Posts
+hasMany := conn.HasMany("posts", "user_id", "id", userID)
+rows, _ := hasMany.Get()
+defer rows.Close()
+for rows.Next() {
+    var post Post
+    rows.Scan(&post.ID, &post.Title)
+}</code></pre>
+
+            <h3>BelongsTo</h3>
+            <pre><code>// Post belongs to User
+belongsTo := conn.BelongsTo("users", "user_id", "id", post.UserID)
+row := belongsTo.Get()
+row.Scan(&user.ID, &user.Name)</code></pre>
+
+            <h3>BelongsToMany (Many-to-Many)</h3>
+            <pre><code>// User belongs to many Roles through role_user pivot table
+belongsToMany := conn.BelongsToMany(
+    "roles",        // related table
+    "role_user",    // pivot table
+    "user_id",      // foreign pivot key
+    "role_id",      // related pivot key
+    "id",           // parent key
+    "id",           // related key
+    userID,
+)
+
+rows, _ := belongsToMany.Get()
+
+// Attach roles
+belongsToMany.Attach([]interface{}{1, 2, 3})
+
+// Detach roles
+belongsToMany.Detach(2)
+
+// Sync roles (replaces all)
+belongsToMany.Sync([]interface{}{1, 3})</code></pre>
+        </section>
+
         <section id="migrations" class="docs-section">
             <h2>Migrations</h2>
             <p>Schema builder for database migrations.</p>
@@ -576,12 +677,235 @@ debug := config.EnvBool("APP_DEBUG", false)</code></pre>
 cfg.All()                  // Get all config as map</code></pre>
         </section>
 
+        <section id="auth" class="docs-section">
+            <h2>Authentication</h2>
+            <p>Secure password hashing and token-based authentication.</p>
+            
+            <h3>Password Hashing</h3>
+            <pre><code>import "golaravel/app/auth"
+
+// Hash a password
+hash, err := auth.Hash("secret123")
+
+// Verify password
+if auth.Check("secret123", hash) {
+    // Password is correct
+}
+
+// Secure string comparison (timing-safe)
+if auth.SecureCompare(token1, token2) {
+    // Tokens match
+}
+
+// Generate random token
+token := auth.GenerateToken(32)
+// Returns: "a1b2c3d4e5f6..."</code></pre>
+
+            <h3>Token Guard</h3>
+            <pre><code>// Create guard with token resolver
+guard := auth.NewTokenGuard(func(token string) (user, userID interface{}, err error) {
+    // Look up user by token
+    user, err := findUserByToken(token)
+    if err != nil {
+        return nil, nil, err
+    }
+    return user, user.ID, nil
+})
+
+// Authenticate with token
+guard.SetToken("bearer-token-here")
+
+// Check authentication
+if guard.Check() {
+    user := guard.User()
+    id := guard.ID()
+}
+
+// Check if guest
+if guard.Guest() {
+    // Not authenticated
+}
+
+// Login user manually
+guard.Login(user)
+
+// Logout
+guard.Logout()</code></pre>
+        </section>
+
+        <section id="cache" class="docs-section">
+            <h2>Caching</h2>
+            <p>In-memory cache store with expiration support.</p>
+            
+            <h3>Basic Operations</h3>
+            <pre><code>import "golaravel/app/cache"
+
+store := cache.NewMemoryStore()
+
+// Store a value (with 5 minute TTL)
+store.Put("user:1", userData, 5*time.Minute)
+
+// Store forever
+store.Forever("settings", appSettings)
+
+// Get a value
+value, exists := store.Get("user:1")
+
+// Get with default
+value := store.GetDefault("missing", "default-value")
+
+// Check existence
+if store.Has("user:1") {
+    // Key exists
+}
+
+// Delete
+store.Forget("user:1")
+
+// Clear all
+store.Flush()</code></pre>
+
+            <h3>Remember Pattern</h3>
+            <pre><code>// Get from cache or compute and store
+value := store.Remember("expensive-query", 10*time.Minute, func() interface{} {
+    return computeExpensiveValue()
+})</code></pre>
+
+            <h3>Increment/Decrement</h3>
+            <pre><code>store.Put("counter", 0, time.Hour)
+
+newVal := store.Increment("counter", 1)  // Returns 1
+newVal = store.Increment("counter", 5)   // Returns 6
+newVal = store.Decrement("counter", 2)   // Returns 4</code></pre>
+        </section>
+
+        <section id="sessions" class="docs-section">
+            <h2>Sessions</h2>
+            <p>Session management with flash data support.</p>
+            
+            <h3>Basic Usage</h3>
+            <pre><code>import "golaravel/app/session"
+
+// Create session manager with memory store
+store := session.NewMemoryStorage()
+manager := session.NewManager(store)
+
+// Create a new session
+sess := manager.Create()
+
+// Get session by ID
+sess, err := manager.Get(sessionID)
+
+// Store data
+sess.Put("user_id", 123)
+sess.Put("cart", []string{"item1", "item2"})
+
+// Retrieve data
+userID := sess.Get("user_id")
+cart := sess.GetDefault("cart", []string{})
+
+// Check existence
+if sess.Has("user_id") {
+    // Key exists
+}
+
+// Remove data
+sess.Forget("cart")
+
+// Clear all data
+sess.Flush()</code></pre>
+
+            <h3>Flash Data</h3>
+            <pre><code>// Flash data is available for ONE request only
+sess.Flash("message", "User created successfully!")
+sess.Flash("error", "Invalid input")
+
+// Pull flash data (get and remove)
+message := sess.Pull("message")
+
+// Keep flash data for another request
+sess.Reflash()
+
+// Age flash data (mark for removal)
+sess.AgeFlashData()</code></pre>
+
+            <h3>Session Security</h3>
+            <pre><code>// Regenerate session ID (prevent fixation)
+sess.Regenerate()
+
+// Invalidate session (logout)
+sess.Invalidate()
+
+// Destroy session
+manager.Destroy(sessionID)</code></pre>
+        </section>
+
+        <section id="events" class="docs-section">
+            <h2>Events</h2>
+            <p>Event dispatcher for decoupled application architecture.</p>
+            
+            <h3>Basic Usage</h3>
+            <pre><code>import "golaravel/app/events"
+
+dispatcher := events.NewDispatcher()
+
+// Register a listener
+dispatcher.Listen("user.created", func(data interface{}) {
+    user := data.(User)
+    sendWelcomeEmail(user)
+})
+
+// Multiple listeners for same event
+dispatcher.Listen("user.created", func(data interface{}) {
+    user := data.(User)
+    createDefaultSettings(user)
+})
+
+// Dispatch an event
+dispatcher.Dispatch("user.created", newUser)</code></pre>
+
+            <h3>Wildcard Listeners</h3>
+            <pre><code>// Listen to all user events
+dispatcher.Listen("user.*", func(data interface{}) {
+    logUserActivity(data)
+})</code></pre>
+
+            <h3>Event Subscribers</h3>
+            <pre><code>// Subscriber groups related listeners
+type UserEventSubscriber struct{}
+
+func (s *UserEventSubscriber) Subscribe(d *events.Dispatcher) {
+    d.Listen("user.created", s.onUserCreated)
+    d.Listen("user.deleted", s.onUserDeleted)
+}
+
+func (s *UserEventSubscriber) onUserCreated(data interface{}) {
+    // Handle user created
+}
+
+func (s *UserEventSubscriber) onUserDeleted(data interface{}) {
+    // Handle user deleted
+}
+
+// Register subscriber
+dispatcher.Subscribe(&UserEventSubscriber{})</code></pre>
+
+            <h3>Managing Listeners</h3>
+            <pre><code>// Check if event has listeners
+if dispatcher.HasListeners("user.created") {
+    // Has at least one listener
+}
+
+// Remove all listeners for an event
+dispatcher.Forget("user.created")</code></pre>
+        </section>
+
     </main>
 
     <footer>
         <div class="container">
             <p>GoLaravel - Built with Go. Inspired by Laravel.</p>
-            <p>273 tests passing</p>
+            <p>327 tests passing</p>
         </div>
     </footer>
 </body>
