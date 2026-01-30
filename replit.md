@@ -99,7 +99,7 @@ cd golaravel
 go test ./...
 ```
 
-All 273 tests pass, covering:
+All 326 tests pass, covering:
 - Service container (bindings, singletons, instances)
 - Routing (groups, params, middleware, named routes)
 - Request/Response handling
@@ -110,6 +110,10 @@ All 273 tests pass, covering:
 - Database ORM (query builder, models)
 - Migrations (schema builder)
 - Support helpers (Str, Collection, Carbon)
+- Authentication (password hashing, token guards)
+- Caching (in-memory store with expiration)
+- Sessions (storage, flash data, regeneration)
+- Events (dispatcher, listeners, subscribers)
 
 ## Documentation Website
 The library includes a hosted documentation site with:
@@ -130,3 +134,12 @@ cd golaravel && go run ./docs/
 - Fixed nullable validation to skip subsequent rules when field is empty
 - Fixed Config.Get() to support flat keys from LoadEnv
 - Added documentation website with comprehensive guides (2026-01-30)
+- Added transaction support for database operations (2026-01-30)
+- Added model relationships: HasOne, HasMany, BelongsTo, BelongsToMany (2026-01-30)
+- Added auth package with bcrypt password hashing (2026-01-30)
+- Added cache package with in-memory store (2026-01-30)
+- Added session package with flash data support (2026-01-30)
+- Added events package with dispatcher and subscribers (2026-01-30)
+- Added graceful shutdown handling (2026-01-30)
+- Added context.Context support to Request (2026-01-30)
+- Fixed rate limiter concurrency with sync.Mutex (2026-01-30)
