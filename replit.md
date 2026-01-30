@@ -99,7 +99,7 @@ cd golaravel
 go test ./...
 ```
 
-All 326 tests pass, covering:
+All 327 tests pass, covering:
 - Service container (bindings, singletons, instances)
 - Routing (groups, params, middleware, named routes)
 - Request/Response handling
