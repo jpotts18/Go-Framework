@@ -1,52 +1,132 @@
 package main
 
 import (
-        "log"
-        "net/http"
-        "os"
-        "path/filepath"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+
+	"golaravel/app"
+	"golaravel/app/http/middleware"
+	"golaravel/app/http/request"
+	"golaravel/app/http/response"
 )
 
 func main() {
-        mux := http.NewServeMux()
+	application := app.New(".")
 
-        execPath, _ := os.Executable()
-        baseDir := filepath.Dir(execPath)
-        staticDir := filepath.Join(baseDir, "static")
+	staticDir := findStaticDir()
+	log.Println("Static directory:", staticDir)
 
-        if _, err := os.Stat(staticDir); os.IsNotExist(err) {
-                staticDir = "./golaravel/docs/static"
-        }
+	application.Router.Use(middleware.Logger())
+	application.Router.Use(middleware.Recovery())
+	application.Router.Use(middleware.SecureHeaders())
 
-        if _, err := os.Stat(staticDir); os.IsNotExist(err) {
-                staticDir = "./docs/static"
-        }
+	application.Router.Get("/", func(req *request.Request, res *response.Response) error {
+		content, err := os.ReadFile(filepath.Join(staticDir, "index.html"))
+		if err != nil {
+			return res.NotFound("Page not found")
+		}
+		res.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+		return res.HTML(string(content))
+	})
 
-        if _, err := os.Stat(staticDir); os.IsNotExist(err) {
-                staticDir = "./static"
-        }
+	application.Router.Get("/docs", func(req *request.Request, res *response.Response) error {
+		content, err := os.ReadFile(filepath.Join(staticDir, "docs.html"))
+		if err != nil {
+			return res.NotFound("Page not found")
+		}
+		res.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+		return res.HTML(string(content))
+	})
 
-        fs := http.FileServer(http.Dir(staticDir))
-        mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	mux := http.NewServeMux()
 
-        mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-                w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-                if r.URL.Path == "/" {
-                        http.ServeFile(w, r, filepath.Join(staticDir, "index.html"))
-                        return
-                }
-                if r.URL.Path == "/docs" || r.URL.Path == "/docs/" {
-                        http.ServeFile(w, r, filepath.Join(staticDir, "docs.html"))
-                        return
-                }
-                http.NotFound(w, r)
-        })
+	mux.HandleFunc("/static/", func(w http.ResponseWriter, r *http.Request) {
+		filePath := strings.TrimPrefix(r.URL.Path, "/static/")
+		fullPath := filepath.Join(staticDir, filePath)
 
-        log.Println("GoLaravel Documentation Server")
-        log.Println("Serving on http://0.0.0.0:5000")
-        log.Println("Static dir:", staticDir)
+		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+			http.NotFound(w, r)
+			return
+		}
 
-        if err := http.ListenAndServe("0.0.0.0:5000", mux); err != nil {
-                log.Fatal(err)
-        }
+		contentType := getContentType(filePath)
+		w.Header().Set("Content-Type", contentType)
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+
+		file, err := os.Open(fullPath)
+		if err != nil {
+			http.Error(w, "Error reading file", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		io.Copy(w, file)
+	})
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		application.Router.ServeHTTP(w, r)
+	})
+
+	log.Println("GoLaravel Documentation Server (powered by GoLaravel)")
+	log.Println("Serving on http://0.0.0.0:5000")
+
+	if err := http.ListenAndServe("0.0.0.0:5000", mux); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func findStaticDir() string {
+	candidates := []string{
+		"./golaravel/docs/static",
+		"./docs/static",
+		"./static",
+	}
+
+	execPath, _ := os.Executable()
+	baseDir := filepath.Dir(execPath)
+	candidates = append([]string{filepath.Join(baseDir, "static")}, candidates...)
+
+	for _, dir := range candidates {
+		if _, err := os.Stat(dir); err == nil {
+			return dir
+		}
+	}
+
+	return "./static"
+}
+
+func getContentType(filename string) string {
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".css":
+		return "text/css; charset=utf-8"
+	case ".js":
+		return "application/javascript; charset=utf-8"
+	case ".html":
+		return "text/html; charset=utf-8"
+	case ".json":
+		return "application/json; charset=utf-8"
+	case ".png":
+		return "image/png"
+	case ".jpg", ".jpeg":
+		return "image/jpeg"
+	case ".gif":
+		return "image/gif"
+	case ".svg":
+		return "image/svg+xml"
+	case ".ico":
+		return "image/x-icon"
+	case ".woff":
+		return "font/woff"
+	case ".woff2":
+		return "font/woff2"
+	case ".ttf":
+		return "font/ttf"
+	default:
+		return "application/octet-stream"
+	}
 }
