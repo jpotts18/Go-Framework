@@ -1,10 +1,10 @@
 package main
 
 import (
-	"io"
+	"embed"
+	"io/fs"
 	"log"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 
@@ -14,18 +14,18 @@ import (
 	"golaravel/app/http/response"
 )
 
+//go:embed static/*
+var staticFiles embed.FS
+
 func main() {
 	application := app.New(".")
-
-	staticDir := findStaticDir()
-	log.Println("Static directory:", staticDir)
 
 	application.Router.Use(middleware.Logger())
 	application.Router.Use(middleware.Recovery())
 	application.Router.Use(middleware.SecureHeaders())
 
 	application.Router.Get("/", func(req *request.Request, res *response.Response) error {
-		content, err := os.ReadFile(filepath.Join(staticDir, "index.html"))
+		content, err := staticFiles.ReadFile("static/index.html")
 		if err != nil {
 			return res.NotFound("Page not found")
 		}
@@ -34,7 +34,7 @@ func main() {
 	})
 
 	application.Router.Get("/docs", func(req *request.Request, res *response.Response) error {
-		content, err := os.ReadFile(filepath.Join(staticDir, "docs.html"))
+		content, err := staticFiles.ReadFile("static/docs.html")
 		if err != nil {
 			return res.NotFound("Page not found")
 		}
@@ -46,9 +46,9 @@ func main() {
 
 	mux.HandleFunc("/static/", func(w http.ResponseWriter, r *http.Request) {
 		filePath := strings.TrimPrefix(r.URL.Path, "/static/")
-		fullPath := filepath.Join(staticDir, filePath)
-
-		if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		
+		content, err := staticFiles.ReadFile("static/" + filePath)
+		if err != nil {
 			http.NotFound(w, r)
 			return
 		}
@@ -56,15 +56,7 @@ func main() {
 		contentType := getContentType(filePath)
 		w.Header().Set("Content-Type", contentType)
 		w.Header().Set("Cache-Control", "public, max-age=3600")
-
-		file, err := os.Open(fullPath)
-		if err != nil {
-			http.Error(w, "Error reading file", http.StatusInternalServerError)
-			return
-		}
-		defer file.Close()
-
-		io.Copy(w, file)
+		w.Write(content)
 	})
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -77,26 +69,6 @@ func main() {
 	if err := http.ListenAndServe("0.0.0.0:5000", mux); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func findStaticDir() string {
-	candidates := []string{
-		"./golaravel/docs/static",
-		"./docs/static",
-		"./static",
-	}
-
-	execPath, _ := os.Executable()
-	baseDir := filepath.Dir(execPath)
-	candidates = append([]string{filepath.Join(baseDir, "static")}, candidates...)
-
-	for _, dir := range candidates {
-		if _, err := os.Stat(dir); err == nil {
-			return dir
-		}
-	}
-
-	return "./static"
 }
 
 func getContentType(filename string) string {
@@ -130,3 +102,5 @@ func getContentType(filename string) string {
 		return "application/octet-stream"
 	}
 }
+
+var _ fs.FS = staticFiles

@@ -34,7 +34,6 @@ externalPort = 80
 deploymentTarget = "autoscale"
 run = ["bash", "-c", "cd golaravel && ./docs-server"]
 build = ["bash", "-c", "cd golaravel && go build -o docs-server ./docs/"]
-publicDir = "golaravel/docs/static"
 
 [nix]
 channel = "stable-25_05"
