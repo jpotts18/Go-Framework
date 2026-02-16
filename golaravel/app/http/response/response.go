@@ -8,19 +8,24 @@ import (
 
 type Response struct {
 	writer     http.ResponseWriter
+	request    *http.Request
 	statusCode int
 	headers    map[string]string
 	cookies    []*http.Cookie
 	sent       bool
 }
 
-func New(w http.ResponseWriter) *Response {
-	return &Response{
+func New(w http.ResponseWriter, r ...*http.Request) *Response {
+	res := &Response{
 		writer:     w,
 		statusCode: http.StatusOK,
 		headers:    make(map[string]string),
 		cookies:    make([]*http.Cookie, 0),
 	}
+	if len(r) > 0 {
+		res.request = r[0]
+	}
+	return res
 }
 
 func (r *Response) Raw() http.ResponseWriter {
@@ -102,7 +107,12 @@ func (r *Response) Redirect(url string, code int) error {
 	}
 
 	r.applyHeaders()
-	http.Redirect(r.writer, nil, url, code)
+	if r.request != nil {
+		http.Redirect(r.writer, r.request, url, code)
+	} else {
+		r.writer.Header().Set("Location", url)
+		r.writer.WriteHeader(code)
+	}
 	r.sent = true
 	return nil
 }

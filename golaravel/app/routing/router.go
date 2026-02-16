@@ -225,7 +225,7 @@ func (r *Router) applyMiddleware(handler HandlerFunc, middleware []MiddlewareFun
 
 func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
         httpReq := request.New(req)
-        httpRes := response.New(w)
+        httpRes := response.New(w, req)
 
         route, params := r.matchRoute(req.Method, req.URL.Path)
 

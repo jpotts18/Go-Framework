@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .title }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #333; }
+        .container { max-width: 600px; margin: 60px auto; padding: 0 20px; }
+        h1 { font-size: 2rem; margin-bottom: 24px; }
+        .count { color: #888; font-weight: normal; font-size: 1rem; }
+
+        .add-form { display: flex; gap: 8px; margin-bottom: 32px; }
+        .add-form input[type="text"] {
+            flex: 1; padding: 10px 14px; border: 1px solid #ddd;
+            border-radius: 6px; font-size: 1rem; outline: none;
+        }
+        .add-form input[type="text"]:focus { border-color: #666; }
+        .add-form button {
+            padding: 10px 20px; background: #333; color: #fff;
+            border: none; border-radius: 6px; font-size: 1rem; cursor: pointer;
+        }
+        .add-form button:hover { background: #555; }
+
+        .errors { background: #fee; border: 1px solid #fcc; padding: 12px;
+            border-radius: 6px; margin-bottom: 16px; color: #c33; }
+
+        .todo-list { list-style: none; }
+        .todo-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 16px; background: #fff; border-radius: 6px;
+            margin-bottom: 8px; border: 1px solid #eee;
+        }
+        .todo-item.completed .todo-title { text-decoration: line-through; color: #aaa; }
+        .todo-title { flex: 1; font-size: 1rem; }
+        .todo-actions { display: flex; gap: 4px; }
+        .todo-actions form { display: inline; }
+        .btn-sm {
+            padding: 4px 12px; border: 1px solid #ddd; border-radius: 4px;
+            background: #fff; cursor: pointer; font-size: 0.85rem;
+        }
+        .btn-sm:hover { background: #f0f0f0; }
+        .btn-danger { color: #c33; border-color: #fcc; }
+        .btn-danger:hover { background: #fee; }
+
+        .empty { text-align: center; color: #999; padding: 40px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Todos <span class="count">({{ .count }})</span></h1>
+
+        {{ if .errors }}
+        <div class="errors">
+            {{ range .errors }}<p>{{ . }}</p>{{ end }}
+        </div>
+        {{ end }}
+
+        <form class="add-form" method="POST" action="/todos">
+            <input type="text" name="title" placeholder="What needs to be done?" autofocus>
+            <button type="submit">Add</button>
+        </form>
+
+        {{ if .todos }}
+        <ul class="todo-list">
+            {{ range .todos }}
+            <li class="todo-item{{ if .Completed }} completed{{ end }}">
+                <span class="todo-title">{{ .Title }}</span>
+                <div class="todo-actions">
+                    <form method="POST" action="/todos/{{ .ID }}/toggle">
+                        <button class="btn-sm" type="submit">{{ if .Completed }}Undo{{ else }}Done{{ end }}</button>
+                    </form>
+                    <form method="POST" action="/todos/{{ .ID }}/delete">
+                        <button class="btn-sm btn-danger" type="submit">Delete</button>
+                    </form>
+                </div>
+            </li>
+            {{ end }}
+        </ul>
+        {{ else }}
+        <p class="empty">No todos yet. Add one above!</p>
+        {{ end }}
+    </div>
+</body>
+</html>
