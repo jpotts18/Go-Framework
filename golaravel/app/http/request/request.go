@@ -171,6 +171,16 @@ func (r *Request) All() map[string]interface{} {
                                 result[k] = v
                         }
                 }
+        } else if strings.Contains(contentType, "application/x-www-form-urlencoded") || strings.Contains(contentType, "multipart/form-data") {
+                if err := r.raw.ParseForm(); err == nil {
+                        for k, v := range r.raw.PostForm {
+                                if len(v) == 1 {
+                                        result[k] = v[0]
+                                } else {
+                                        result[k] = v
+                                }
+                        }
+                }
         }
 
         return result
